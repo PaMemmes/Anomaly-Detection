@@ -11,8 +11,36 @@
 \usepackage{amsmath}
 \usepackage{graphicx}
 \usepackage{subfig}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
 
 \usepackage[colorlinks=true, allcolors=blue]{hyperref}
+
+\lstdefinestyle{mystyle}{
+	backgroundcolor=\color{backcolour},   
+	commentstyle=\color{codegreen},
+	keywordstyle=\color{magenta},
+	numberstyle=\tiny\color{codegray},
+	stringstyle=\color{codepurple},
+	basicstyle=\ttfamily\footnotesize,
+	breakatwhitespace=false,         
+	breaklines=true,                 
+	captionpos=b,                    
+	keepspaces=true,                 
+	numbers=left,                    
+	numbersep=5pt,                  
+	showspaces=false,                
+	showstringspaces=false,
+	showtabs=false,                  
+	tabsize=2
+}
+
+\lstset{style=mystyle}
 
 \DeclareMathOperator{\E}{\mathbb{E}}
 \begin{document}
@@ -89,18 +117,25 @@
 	\section{Background and Theory}
 
 	
-	 In the past, an abundance of different methods have been used for anomaly detection in various domains including for IDSs ranging from nearest neighbor methods \cite{5377998}, clustering approaches \cite{4244796}, decision trees \cite{6511281} to isolation forests \cite{DING201312} or support vector machines \cite{1234567}. The task is to implement a machine learning model that is able to differentiate between malicious packets vs normal packets, i.e. a binary task such that an IDS that uses this machine learning model can reject malicious traffic. This binary classification task is sometimes extended to multi-class classification. That way, an IDS is able to differentiate between different attacks. This can be useful because that way less malicious attacks could not be rejected because that alarm may be a false positive and since it would not damage the system in a harmful way, it would not matter too much (for example a port scan is way less harmful than a DDoS).
+	 The task is to implement a machine learning model that is able to differentiate between malicious packets vs normal packets, i.e. a binary task such that an IDS that uses this machine learning model can reject malicious traffic. This binary classification task is sometimes extended to multi-class classification. That way, an IDS is able to differentiate between different attacks. This can be useful because that way less malicious attacks could not be rejected because that alarm may be a false positive and since it would not damage the system in a harmful way, it would not matter too much (for example a port scan is way less harmful than a DDoS).
+
+	\subsection{Prior Work}
+	 In the past, an abundance of different methods have been used for anomaly detection in various domains including for IDSs ranging from nearest neighbor methods \cite{5377998}, clustering approaches \cite{4244796}, decision trees \cite{6511281} to isolation forests \cite{DING201312} or support vector machines \cite{1234567}. 
+	 \newline
 	 
-	 Recently, deep neural networks have begun to be of particular interest for anomaly detection. Many different approaches have been looked at: Methods based on autoencoders and/or variational autoencoders train to reconstruct normal data and then will identify data as anomalies when there is a high reconstruction error. The threshold is often then adjusted to fit a specific use case, i.e. maximizing true positive rate while minimizing false positive rate or assuming reconstructions are normally distributed and labeling data as anomalies that are $x$ standard deviations away from the mean. 
+	 \noindent
+	 Because of the rise of Deep Learning due to being more computationally feasible and achieving higher accuracy in many tasks, many approaches feature neural networks in some kind of way: Discriminative methods like feed forward networks, recurrent neural networks or LSTMs detect malicious packets (=anomalies) only if they are already labelled as such while methods based on autoencoders and/or variational autoencoders try to reconstruct normal data and then will identify data as anomalies when there is a high reconstruction error. This means, there generally is no need for labelled data in these models. The threshold on how to differentiate between anomalies and normal data is often then adjusted to fit a specific use case, i.e. maximizing true positive rate while minimizing false positive rate or assuming reconstructions are normally distributed and labeling data as anomalies that are $x$ standard deviations away from the mean. This depends specifically on the business objective and the task at hand. In anomaly detection, one generally wants to minimize the false positive rate. 
 	 
-	 Other models that have been looked at are energy-based models and deep auto-encoding Gaussian mixture models that model the data distribution with autoencoders and then derive a statistical anomaly criterion based on energies or mixtures of Gaussians \cite{https://doi.org/10.48550/arxiv.1812.02288}. 
+	 Other models that have been looked at are energy-based models and deep auto-encoding Gaussian mixture models that model the data distribution with autoencoders and then derive a statistical anomaly criterion based on energies or mixtures of Gaussians \cite{https://doi.org/10.48550/arxiv.1812.02288}.
+	 
+	 In the following we will look specifically at generative adversarial models and autoencoder. 
 	
-	 \subsection{Prior Work}
 	 
+	 \subsection{Relevant tools}
 	 \subsubsection{Generative Adversarial Nets}
-	 Another model that has become popular in anomaly detection has been the generative adversarial network. It features a generator that tries to generate data that looks like the training data from a latent distribution (most often Gaussian or uniform) and a discriminator that tries to distinguish between data made by the generator and actual (real) data. 
+	 Another model that has become popular in anomaly detection has been the generative adversarial network. It features a generator that tries to generate data that looks like the training data from a latent distribution (most often Gaussian or uniform) and a discriminator that tries to distinguish between data made by the generator and actual (real) data. The discriminator $D$ and the generator $G$ normally are determined by alternating gradient descent on the parameter and keeping the respective other model parameters fixed. This can be shown in listing \ref{lst}. It shows how the training procedure was done for our GAN model and the discriminator's weights are fixed while training the generator. Generally, one could also use multiple steps per generator for example to make the generator be able to generate more realistic examples. 
 	 
-	 There are many different loss functions and this is still an active area of research. The Minimax loss has been used in the original paper about GANs but many other losses have been proposed. in the Minimax loss, the generator trains to minimize $log(1-D(G(z)))$ while the discriminator tries to maximize the probability of correctly distinguishing between fake (generated by Generator $G$) and real data, i.e. correctly assigning the right labels to data from the generator $G$ and real data. \cite{https://doi.org/10.48550/arxiv.1406.2661}
+	 This is done by using the Minimax loss, but is still an active area of research. The Minimax loss has been used in the original paper about GANs but many other losses have been proposed. in the Minimax loss, the generator trains to minimize $log(1-D(G(z)))$ while the discriminator tries to maximize the probability of correctly distinguishing between fake (generated by Generator $G$) and real data, i.e. correctly assigning the right labels to data from the generator $G$ and real data. \cite{https://doi.org/10.48550/arxiv.1406.2661}
 	 
 	 \begin{equation}
 	 	\min_G \max_D V(D, G) = \E_{x\sim p_{data}(x)}[logD(x)] + \E_{z\sim p_z (z)}[log(1 - D(G(z)))] 
@@ -108,33 +143,42 @@
 	 
 	 This loss function can cause the GAN to get stuck in the early stages of training when the differentiation between fake and real samples done by the discriminator is very easy \cite{https://doi.org/10.48550/arxiv.1406.2661}.
 	 
-	 \begin{listing}
-		\begin{minted}{Python}
-  for epochs:
-    for batches:
-      noise = generate_noise()
-      generated_fakes = generator.generate(noise)
-      
-      discriminator.trainable = True
-      discriminator_loss = discriminator.train(X_normal, generated_fakes)
-      
-      noise = generate_noise()
-      discriminator.trainable = False
-      generator_loss = gan.train(noise, np.ones())
-      
-  	    \end{minted}
-		\caption{GAN training.}
-		\label{lst:gan}
-	\end{listing}
+
+	\begin{lstlisting}[language=Python, caption=GAN Training, label={lst}]
+def train_gan():
+	for epochs:
+		for batches:
+			noise = generate_noise()
+			generated_fakes = generator.generate(noise)
 	
-	The listing \ref{lst:gan} shows how the training was done for our GAN model. 
+			discriminator.trainable = True
+			discriminator_loss = discriminator.train(X_normal, generated_fakes)
+	
+			noise = generate_noise()
+			discriminator.trainable = False
+			generator_loss = gan.train(noise, np.ones())
+	\end{lstlisting}
+	
+	\noindent
+
+	
+	In order to now be able to exploit the GAN architecture and its strong classifying abilities, multiple approaches have been developed. For a data point one could "invert" the generator in order to find latent variables that minimize the reconstruction error \cite{https://doi.org/10.48550/arxiv.1703.05921}. This is also computationally expensive since each gradient computation requires backpropagation through the generator $G$. 
  	  
  	 \subsubsection{Autoencoder}
  	  
  	  Autoencoders are neural networks that are trained to reconstruct its inputs. They are a form of unsupervised learning that learn efficient encodings of the data that they are fed but can also be used in clustering tasks and as such can be used for anomaly detection. 
  	  
- 	  Autoencoders consists of two parts: An Encoder and a Decoder. They can be viewed as functions $z = f(x)$ and $r = g(x)$ respectively. 
+ 	  Autoencoders consists of two parts: An encoder and a decoder. They can be viewed as functions $z = f(x)$ and $r = g(x)$ respectively. The encoder hereby tries to compress the (usually) high-dimensional data into a low-dimensional representation and the decoder aims to reconstruct the originally inputted data from the compressed data representation generated by the encoder. The goal of training the encoder is to minimize the difference between output and input by finding the optimal parameters $\theta$. This can be done by the MSE loss, i.e. 
  	  
+ 	  \begin{equation}
+ 	  	L(x, y) =  \frac{1}{N} \sum_{i=1}^{N} ||x_i - y_i ||^2
+ 	  \end{equation}
+ 	  where $N$ is the total number of instances in the training set. The optimal parameters $\theta$ are then found by:
+ 	  
+ 	  \begin{equation}
+ 	  	\theta = \operatorname*{argmin}_\theta
+ 	  	 L(x,y)
+ 	  \end{equation}
  	  	(detailed description of the problem, discussion of prior work, introduction of relevant machine learning tools)
 	 \section{Method}
 	 
@@ -180,8 +224,24 @@
 	
 	\section{Experiments}
 	(description of experiments, diagrams, comparison with results of prior work, interpretation of the experimental outcomes)
-	First and foremost, we noticed that multiple executions of the code resulted in vastly different results even when initializing the weights of the network with a seed. The dataset is really sensitive to randomness.  
-	We evaluated the model based on different metrics. We measured the (validation) accuracy as well measuring the true positive rate and the false positive rate, calculating the ROC curve and making a confusion matrix. Since there is a class imbalance of anomalous and normal packets, accuracy is not a good performance indicator. Simply having a classifier that always predicts normal packets would yield an accuracy score of 80\% which in itself is not a particularly bad score but fails to solve the task. That's why we also have a look at tpr, fpr and f1-score to see how well the classifier is doing.  We noticed that based on the generated random noise that was fed into the generator the performance of the GAN (specifically the performance of the discriminator when trying to classify anomalies) varied greatly.
+	First and foremost, we noticed that multiple executions of the code resulted in vastly different results even when initializing the weights of the network with a seed. The dataset is really sensitive to randomness.
+	
+	We evaluated the model based on different metrics. We measured the (validation) accuracy as well as measuring recall and precision and f1-score according to the following equations, where TP denotes true positive, TN denotes true negatives, FP denotes false positives and FN denotes false negatives: 
+	
+	\begin{equation}
+		Precision = \frac{TP}{TP + FP}
+	\end{equation}
+	
+	\begin{equation}
+		Recall = \frac{TP}{TP + FN}
+	\end{equation}
+	\begin{equation}
+		Accuracy = \frac{TP + FN}{TP+FP+TN+FN}
+	\end{equation}
+\begin{equation}
+	F1 = \frac{TP}{TP + \frac{1}{2} (FP+FN)}
+\end{equation}
+	We also calculated the ROC curve and making a confusion matrix. Since there is a class imbalance of anomalous and normal packets, accuracy is not a good performance indicator. Simply having a classifier that always predicts normal packets would yield an accuracy score of 80\% which in itself is not a particularly bad score but fails to solve the task. That's why we also have a look at tpr, fpr and f1-score to see how well the classifier is doing.  We noticed that based on the generated random noise that was fed into the generator the performance of the GAN (specifically the performance of the discriminator when trying to classify anomalies) varied greatly.
 	\newline
 	
 	\noindent
