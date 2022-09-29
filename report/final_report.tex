@@ -5,11 +5,13 @@
 % Set page size and margins
 % Replace `letterpaper' with`a4paper' for UK/EU standard size
 \usepackage{geometry}
-
+\usepackage{minted}
 \usepackage{amsfonts}
 % Useful packages
 \usepackage{amsmath}
 \usepackage{graphicx}
+\usepackage{subfig}
+
 \usepackage[colorlinks=true, allcolors=blue]{hyperref}
 
 \DeclareMathOperator{\E}{\mathbb{E}}
@@ -77,13 +79,17 @@
 	
 	\noindent
 	Another problem that poses itself is that a system in use needs to monitor network traffic in real time. This means that classification of network packages has to be relatively fast such that there is no significant and noticeable delay in the packets arriving. This will especially be of relevance since generative adversarial only models implicitly model the data distribution which in turn means that in order to classify malicious network packets, a costly optimization problem has to be solved.
+	\newline
+	
+	\noindent
+	Lastly, it is relatively hard to obtain a large and well maintained dataset for this task partly because of the expensive labelling and also because many companies and institutions are afraid of accidentally releasing sensitive data. Also, often not many attack variants are covered by the dataset which leads to underperforming IDSs in real applications since only a small subset of attack variants are covered by the training data. 
 	
 	(what is the problem? why is it interesting? what are the main obstacles?)
 	
 	\section{Background and Theory}
 
 	
-	 In the past, an abundance of different methods have been used ranging from nearest neighbor methods, clustering approaches, decision trees to isolation forests or support vector machines. 
+	 In the past, an abundance of different methods have been used for anomaly detection in various domains including for IDSs ranging from nearest neighbor methods \cite{5377998}, clustering approaches \cite{4244796}, decision trees \cite{6511281} to isolation forests \cite{DING201312} or support vector machines \cite{1234567}. The task is to implement a machine learning model that is able to differentiate between malicious packets vs normal packets, i.e. a binary task such that an IDS that uses this machine learning model can reject malicious traffic. This binary classification task is sometimes extended to multi-class classification. That way, an IDS is able to differentiate between different attacks. This can be useful because that way less malicious attacks could not be rejected because that alarm may be a false positive and since it would not damage the system in a harmful way, it would not matter too much (for example a port scan is way less harmful than a DDoS).
 	 
 	 Recently, deep neural networks have begun to be of particular interest for anomaly detection. Many different approaches have been looked at: Methods based on autoencoders and/or variational autoencoders train to reconstruct normal data and then will identify data as anomalies when there is a high reconstruction error. The threshold is often then adjusted to fit a specific use case, i.e. maximizing true positive rate while minimizing false positive rate or assuming reconstructions are normally distributed and labeling data as anomalies that are $x$ standard deviations away from the mean. 
 	 
@@ -100,9 +106,28 @@
 	 	\min_G \max_D V(D, G) = \E_{x\sim p_{data}(x)}[logD(x)] + \E_{z\sim p_z (z)}[log(1 - D(G(z)))] 
 	 \end{equation}
 	 
-	 This loss function can cause the GAN to get stuck in the early stages of training when the differentiation between fake and real samples done by the discriminator is very easy \cite{https://doi.org/10.48550/arxiv.1406.2661}. 
+	 This loss function can cause the GAN to get stuck in the early stages of training when the differentiation between fake and real samples done by the discriminator is very easy \cite{https://doi.org/10.48550/arxiv.1406.2661}.
 	 
-	 Another popular loss function is the Wasserstein loss (the GAN being then called WGAN) where the discriminator does n
+	 \begin{listing}
+		\begin{minted}{Python}
+  for epochs:
+    for batches:
+      noise = generate_noise()
+      generated_fakes = generator.generate(noise)
+      
+      discriminator.trainable = True
+      discriminator_loss = discriminator.train(X_normal, generated_fakes)
+      
+      noise = generate_noise()
+      discriminator.trainable = False
+      generator_loss = gan.train(noise, np.ones())
+      
+  	    \end{minted}
+		\caption{GAN training.}
+		\label{lst:gan}
+	\end{listing}
+	
+	The listing \ref{lst:gan} shows how the training was done for our GAN model. 
  	  
  	 \subsubsection{Autoencoder}
  	  
@@ -112,42 +137,113 @@
  	  
  	  	(detailed description of the problem, discussion of prior work, introduction of relevant machine learning tools)
 	 \section{Method}
+	 
+	 \subsection{Preprocessing}
 	 The dataset that we used was the CSE-CIC-IDS2017 (CICIDS2017) dataset. There actually is a new updated dataset, the CSE-CIC-IDS2018 (CICIDS2018) dataset, but this dataset was too large for our computing ressources. The CICIDS2018 dataset has a similar ratio of malicious attacks compared to the CICIDS2017 dataset but contains 16,233,002 instances while the CICIDS2017 "only" has a total of 2,830,743 instances. Each packet has a total number of 78 different features and a label which ranged from "BENIGN" to any of the different attacks which were a total of 14 different attack types. None of the features were categorical (except the label of course). 
 	 \newline
 	 
-	 \noindent
-	 In preprocessing, we removed any row that had some kind of faulty entry in the features, i.e. removing any rows that had infinity/-infinity in it or if there was a NaN value. After dropping these values, the dataset still had $99.89\%$ of its original size. We then made a 75-25 train-test split and saved this configuration such that it could be used for any of the models that we implemented. We also scaled the data using the MinMaxScaler that scales the input according to the following formula: $x_{scaled} = \frac{x-min(x)}{max(x)-min(x)}$ which is part of scikitlearns library \cite{sklearn_api}.
-	 \newline
 	 
 	 \noindent
+	 In preprocessing, we removed any row that had some kind of faulty entry in the features, i.e. removing any rows that had infinity/-infinity in it or if there was a NaN value. After dropping these values, the dataset still had $99.89\%$ of its original size. We then made a 75-25 train-test split and saved this configuration such that it could be used for any of the models that we implemented. We also scaled the data using the MinMaxScaler that scales the input according to the following formula: $x_{scaled} = \frac{x-min(x)}{max(x)-min(x)}$ which is part of scikitlearns library \cite{sklearn_api}. We first changed the labels of the data to be binary. That way, attacks can be detected but the models are not able to predict the specific type of attack. This means that the models should be able to differentiate between normal traffic and malicious traffic (which consisted previously out of 14 different types: DDoS, Infiltration, Heartbleed, PortScan, etc.). We had to simplify the task to binary predictions because the approach for the GAN would not have worked otherwise, as will be shown later on. 
+
+	 \subsection{Approach}
+
 	 Our main contribution are a GAN and autoencoder model and compare their performance for anomaly detection on the CICIDS2017 dataset. We also implemented  a simple Feed Forward Network which served as a baseline model. We also implemented a simple Logistic Regression model to have some kind of comparison from the neural models to some non-neural model. In the following we will describe and explain each model.
-	 \newline
+
 	 
-	 \noindent
+		
+	  \subsubsection{Feed forward network}
 	 The first model that we implemented is the baseline model which consists of a simple feed-forward network making binary predictions on the data using the binary cross entropy loss function. The baseline network had the problem of always predicting that the traffic is normal and still getting an accuracy of $80\%$. In order deal with that fact, we decided to adjust the class weights for the two classes. We had to adjust it in a really biased way towards the anomaly class, i.e. assigning a weight of $0.99$ to the anomaly class and $0.01$ to the normal class. 
+
+	 
+	 
+	\subsubsection{Generative Adversarial Network}
+	 Our main approach was to develop a GAN that is able to differentiate between malicious and normal packets. Since GANs normally are generative models that are used to generate data (most often images) the GAN has to be modified in some way to be able to make it a discriminative model.  The idea is that the trained discriminator during training becomes really good at classifiying real data (i.e. the distribution of the real data) and fake data (i.e. data generated by the generator). 
 	 \newline
 	 
-	 
 	 \noindent
-	 Our main approach was develop a GAN that is able to differentiate between malicious and normal packets. Since GANs normally are generative models that are used to generate data (most often images) the GAN has to be modified in some way to be able to make it a discriminative model.  The idea is that the trained discriminator during training becomes really good at classifiying real data (i.e. the distribution of the real data) and fake data (i.e. data generated by the generator). This can be leveraged by simply training the GAN on a subset of the training data, i.e. by training the GAN with only normal (=not malicious) network packets such that the discriminator gets proficient at being able to classify normal and fake (from the generator) packets. This way, the discriminator may be able to then differentiate between normal and malicious traffic. 
+	 There are multiple ways the discriminator is then able to identify anomalies, for example by incorporating an autoencoder architecture into the GAN architecture and then using the reconstruction scores to be able to classify data. The approach we used, however, is by using the following assumption: Because the training (and test) data comprises of 20\% of anomalies, ideally the lowest 20\% scores should constitute anomalies. That way, we can use a simple threshold based on the score outputted by the discriminator. The prediction of the network is done way faster than trying to recover the latent representation of a given input example by solving an optimization problem and thus can be used in real-time applications like an IDS.
+	
+	 This can be done by simply training the GAN on a subset of the training data, i.e. by training the GAN with only normal (=not malicious) network packets such that the discriminator gets proficient at being able to classify normal and fake (from the generator) packets. This way, the discriminator may be able to then differentiate between normal and malicious traffic. 
 	 
-	 
-	 We did this by first changing the labels of the data to be binary. That way, attacks can be detected but the GAN is not able to predict the specific type of attack. This means that the network should be able to differentiate between normal traffic and malicious traffic (which consists out of 14 different types: DDoS, Infiltration, Heartbleed, PortScan, etc.).
-	 
-	 
-     There are multiple ways the discriminator is then able to identify anomalies. There are more complex ways, for example by incorporating an autoencoder architecture into the GAN architecture and then using the reconstruction scores to be able to classify data. The approach we used, however, is by using the following assumption: When training the GAN properly the lowest $x$ percentage lowest $x$ percentage that comprises of anomalies in the test set and threshold based on this score. There are also other ways to do this for example by solving an optimization problem or by incorporating an Autoencoder network in the GAN.
+     \subsubsection{Autoencoder}
+     As already explained, the autoencoder consists of an encoder and a decoder. We used a latent dimension of 4 and used the Mean Squared Error loss. In order to make predictions, we generate predictions (i.e. reconstructions) using the autoencoder model of the test dataset. Then we compute the reconstruction scores by using the mean squared error between the reconstructed test data and the test data, i.e. $recon\_scores = \frac{1}{N} \sum_{i=1}^{N} (Y_i - \hat{Y}_i)^2$, where $N$ is the number of test data points, $Y_i$ is the true test data point and $\hat{Y}_i$ is the reconstructed test data point. Based on these reconstruction scores a threshold can be set that accomplishes some kind of objective.
      
-     When making binary predictions it is important to decide how to model the decision component, i.e. after creating the model that outputs probabilities $()\hat{p}, 1-\hat{p}$, how to decide at which probability threshold the decision should be made to one class or to the other. The decision on how to find the optimal decision threshold varies greatly depending on the task at hand: In medical applications a false negative could potentially not diagnose a disease which could lead to the patient not getting the right treatment.
+
+     When making binary predictions it is important to decide how to model the decision component, i.e. after creating the model that outputs probabilities $(\hat{p}, 1-\hat{p})$, how to decide at which probability threshold the decision should be made to one class or to the other. The decision on how to find the optimal decision threshold varies greatly depending on the task at hand: In medical applications a false negative could potentially not diagnose a disease which could lead to the patient not getting the right treatment.
      
-     For anomaly detection it is not as obvious to decide what one should try to minimize. Is it better to minimize the detection of false positives or false negatives? The former leads to legit network traffic being rejected, the latter leading to attacks that are not being detected. 
+     For anomaly detection it is not as obvious to decide what one should try to minimize. Is it better to minimize the detection of false positives or false negatives? The former leads to legit network traffic being rejected, the latter leading to attacks that are not being detected. For the feed forward network and the autoencoder we maximized the true positive ratio and minimizing the false positive ratio. For the GAN we used the lowest $x$\% scores where $x$ is the number of anomalies in the training data set (~$20$\%).
+     
+     
 	(detailed description of your own approach, discussion of alternatives, introduction of the experimental methodology and quality metrics)
+	
+	
 	\section{Experiments}
 	(description of experiments, diagrams, comparison with results of prior work, interpretation of the experimental outcomes)
-	First and foremost, we noticed that multiple executions of the code resulted in vastly different results even when initializing the weights of the network with a seed. The dataset is really sensetive to randomness.  
-	We evaluated the model based on different metrics. We measured the (validation) accuracy as well measuring the true positive rate and the false positive rate, calculating the ROC curve and making a confusion matrix. Since there is a class imbalance of anomalous and normal packets, accuracy is not a good performance indicator. Simply having a classifier that always predicts normal packets would yield an accuracy score of 80\% which in itself is not a particularly bad score but fails to solve the task. We noticed that based on the generated random noise that was fed into the generator the performance of the GAN (specifically the performance of the discriminator when trying to classify anomalies) varied greatly. That's why we also have a look at tpr, fpr and f1-score to see how well the classifier is doing. 
+	First and foremost, we noticed that multiple executions of the code resulted in vastly different results even when initializing the weights of the network with a seed. The dataset is really sensitive to randomness.  
+	We evaluated the model based on different metrics. We measured the (validation) accuracy as well measuring the true positive rate and the false positive rate, calculating the ROC curve and making a confusion matrix. Since there is a class imbalance of anomalous and normal packets, accuracy is not a good performance indicator. Simply having a classifier that always predicts normal packets would yield an accuracy score of 80\% which in itself is not a particularly bad score but fails to solve the task. That's why we also have a look at tpr, fpr and f1-score to see how well the classifier is doing.  We noticed that based on the generated random noise that was fed into the generator the performance of the GAN (specifically the performance of the discriminator when trying to classify anomalies) varied greatly.
+	\newline
+	
+	\noindent
+	In table \ref{table1} the configuration of each neural network can be found. This was the best configuration found after experimenting with the hyperparameters. 
+	
+	\begin{table}[]
+		\begin{tabular}{llll}
+			& \textbf{FFN}        & \textbf{Autoencoder} & \textbf{GAN}        \\
+			\textbf{Learning rate} & 0.001               & 0.000001             & 0.00001             \\
+			\textbf{Optimizer}     & Adam                & Adam                 & Adam                \\
+			\textbf{Batch size}    & 512                 & 512                  & 512                 \\
+			\textbf{Epochs}        & 50                  & 50                   & 10                  \\
+			\textbf{Loss function} & Binary Crossentropy & Binary Crossentropy  & Binary Crossentropy
+		\end{tabular}
+	\caption{Parameters for models}
+	\label{table1}
+	\end{table}
+	
+	\begin{table}[]
+		\begin{tabular}{llll}
+			& \textbf{FFN} & \textbf{Autoencoder} & \textbf{GAN} \\
+			\textbf{Accuracy}  & 0.001        & 0.000001             & 0.00001      \\
+			\textbf{Recall}    & Adam         & Adam                 & Adam         \\
+			\textbf{Precision} & 512          & 512                  & 512          \\
+			\textbf{F1-score}  & 50           & 50                   & 10          
+		\end{tabular}
+	\end{table}
+	
+	\begin{figure}[!tbp]
+		\centering
+		\subfloat[Feed forward network]{\includegraphics[width=0.3\textwidth]{figures/baseline/accuracy_baseline.png}\label{fig:f1}}
+		\hfill
+		\subfloat[Autoencoder]{\includegraphics[width=0.3\textwidth]{figures/baseline/loss_baseline.png}\label{fig:f2}}
+		\hfill
+		\subfloat[GAN]{\includegraphics[width=0.3\textwidth]{figures/baseline/roc_baseline.png}\label{fig:f3}}
+		\caption{Accuracy in training}
+	\end{figure}
+	
+	\begin{figure}[!tbp]
+		\centering
+		\subfloat[Feed forward network]{\includegraphics[width=0.3\textwidth]{figures/baseline/accuracy_baseline.png}\label{fig:f4}}
+		\hfill
+		\subfloat[Autoencoder]{\includegraphics[width=0.3\textwidth]{figures/baseline/loss_baseline.png}\label{fig:f5}}
+		\hfill
+		\subfloat[GAN]{\includegraphics[width=0.3\textwidth]{figures/baseline/roc_baseline.png}\label{fig:f6}}
+		\caption{Confusion matrices}
+	\end{figure}
+
+	\begin{figure}[!tbp]
+		\centering
+		\subfloat[Feed forward network]{\includegraphics[width=0.3\textwidth]{figures/baseline/accuracy_baseline.png}\label{fig:f7}}
+		\hfill
+		\subfloat[Autoencoder]{\includegraphics[width=0.3\textwidth]{figures/baseline/loss_baseline.png}\label{fig:f8}}
+		\hfill
+		\subfloat[GAN]{\includegraphics[width=0.3\textwidth]{figures/baseline/roc_baseline.png}\label{fig:f9}}
+		\caption{ROC curves}
+	\end{figure}
 	\section{Summary and Outlook}
 	
 	One could look into Bayesian Hyper-Parameter Optimization with Gaussian Processes in order to make the GAN converge to a good optimum more likely. This is especially important because often GANs are hard to train and to make them converge. Training the GAN for this task is especially hard, because there are no good objective metrics for evaluating whether a GAN is performing well during training, so one has to visually inspect the generated examples by the generator \cite{https://doi.org/10.48550/arxiv.1606.03498}. This cannot be done in this specific task because the generated examples are not images but a 78 dimensional vector of different values (i.e. packet length, etc.). This makes it hard to ensure that the training is actually going well. 
+	
+	Furthermore, there are many extensions for GANs that could be viable for usage in an IDS. As we already have talked about using an Adversarial Autoencoder or using Adversarial Variational Bayes could be extensions and may be more powerful than using a simple GAN. 
 	\newpage
 	\bibliographystyle{plain}
 	\bibliography{references}
