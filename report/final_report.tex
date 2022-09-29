@@ -1,0 +1,155 @@
+\documentclass[]{article}
+
+
+\usepackage{makecell}
+% Set page size and margins
+% Replace `letterpaper' with`a4paper' for UK/EU standard size
+\usepackage{geometry}
+
+\usepackage{amsfonts}
+% Useful packages
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+
+\DeclareMathOperator{\E}{\mathbb{E}}
+\begin{document}
+	
+	\newgeometry{margin=2.5cm}
+	\begin{titlepage}
+		\thispagestyle{empty}
+		\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+		\hspace{1cm}
+		\center
+		
+		\textsc{\huge Ruprecht-Karls Universität Heidelberg}\\[2.0cm]
+		
+		\textsc{\Large Report}\\[1.0cm]
+		
+		\HRule\\[1.4cm]
+		
+		{ \huge \bfseries Anomaly-based detection of malicious network packages}\\[0.8cm]
+		% { \large Untertitel der Arbeit, falls gewünscht}\\[0.3cm] % Falls nicht benötigt, einfach auskommentieren
+		\HRule \\[8.4cm]
+		
+		
+		\begin{minipage}[t]{0.8\textwidth}
+			\begin{itemize}
+				\item[\emph{Supervisor:}] Prof. Dr. Ullrich Köthe
+				\item[\emph{Semester:}] SS 2022
+				\item[\emph{Name:}] Pascal Memmesheimer
+				\item[\emph{Matr.-Nr.:}] 3371798
+			\end{itemize}
+		\end{minipage}
+		
+		\vspace{2.5cm}
+		
+		\flushright \emph{Submission date:} \today
+	\end{titlepage}
+	\restoregeometry
+	\pagenumbering{roman} % Start roman numbering
+	
+	\tableofcontents
+	
+	\newpage
+	\pagenumbering{arabic} % Switch to normal numbers
+
+	\section{Introduction}
+
+	Cyber Security is an integral part of any system that is used in a network connected to the internet. There are many ways to make a system safer. From securing the system by always downloading the newest security patches to using strong passwords or even not connecting a system to the internet at all. The latter is often not possible. By using a firewall one can use rules to allow or deny network packets. This, however, is not sufficient in order to secure a system because the function of a firewall is not to detect attacks but to just define rules for network communication. Thus, inspecting incoming data over the network may be crucial to secure a system. This is done by a so-called Intrusion Detection System (IDS). An IDS can help identify malicious network packets from normal packets and based on this categorization rules could be established how to deal with these malicious network packets. 
+	\newline
+	
+	\noindent
+	IDSs can be classified into two different systems: Host-based intrusion detection systems (HIDS) and network intrusion detection systems (NIDS). A HIDS monitors and analyzes a running system by looking at the state of the system, the stored information, the filesystem, log files, and more. A NIDS monitors the network by analyzing the network traffic, extracting the relevant features of the network traffic, classifying it as unsafe or safe traffic, and then raising an alarm if unsafe traffic has been classified. In the following, we will focus solely on NIDSs.
+	\newline
+	
+	\noindent
+	There are mainly two different ways to implement a NIDS. Firstly, one can use a Signature-based intrusion detection system (SIDS). SIDSs primarily create a signature of a network package and then use pattern-matching techniques to find a known attack. This is also called knowledge-based or misuse detection \cite{10.1007/978-3-030-04503-6_14}. In practice, a database of intrusion signatures (i.e. malicious activities/attacks) is built and signatures of incoming traffic are built and they are compared with the existing database. This kind of detection of malicious network packages works excellently but only for attacks in which the signatures are known beforehand \cite{10.1145/972374.972384}. SIDS methods have been used in commercial and existing systems like in Snort \cite{roesch1999snort} and NetSTAT \cite{vigna1999netstat}. Attacks that are not in the database or zero-day attacks (attacks that are previously unknown), however, cannot be detected accurately. 
+	
+	Because of this anomaly-based intrusion detection systems (AIDS) have become increasingly popular, especially with the rise of Deep Learning and anomaly detection being an important part in many other different domains including fraud detection, medical imaging and now also Cyber Security - there, especially for intrusion detection. 
+	\newline
+	
+	\noindent
+	Anomaly detection is a well-studied problem although fast and effective methods on (usually) high-dimensional data remain a challenge and better solutions are sought after.  This is due to the fact that there are a lot of different anomaly types and it is not trivial to categorize them correctly. 
+	
+	Some network packets may only be an outlier when incorporating this outlier in the sequence of the network packets before and after that packet. This is then called a collective anomaly. Other times a network packet may be a normal packet but because of the specific context, it should be considered an anomaly, i.e. classified as an attack. This is called a contextual anomaly \cite{10.1145/1541880.1541882}. 
+	\newline
+	
+	\noindent
+	Another problem that poses itself is that a system in use needs to monitor network traffic in real time. This means that classification of network packages has to be relatively fast such that there is no significant and noticeable delay in the packets arriving. This will especially be of relevance since generative adversarial only models implicitly model the data distribution which in turn means that in order to classify malicious network packets, a costly optimization problem has to be solved.
+	
+	(what is the problem? why is it interesting? what are the main obstacles?)
+	
+	\section{Background and Theory}
+
+	
+	 In the past, an abundance of different methods have been used ranging from nearest neighbor methods, clustering approaches, decision trees to isolation forests or support vector machines. 
+	 
+	 Recently, deep neural networks have begun to be of particular interest for anomaly detection. Many different approaches have been looked at: Methods based on autoencoders and/or variational autoencoders train to reconstruct normal data and then will identify data as anomalies when there is a high reconstruction error. The threshold is often then adjusted to fit a specific use case, i.e. maximizing true positive rate while minimizing false positive rate or assuming reconstructions are normally distributed and labeling data as anomalies that are $x$ standard deviations away from the mean. 
+	 
+	 Other models that have been looked at are energy-based models and deep auto-encoding Gaussian mixture models that model the data distribution with autoencoders and then derive a statistical anomaly criterion based on energies or mixtures of Gaussians \cite{https://doi.org/10.48550/arxiv.1812.02288}. 
+	
+	 \subsection{Prior Work}
+	 
+	 \subsubsection{Generative Adversarial Nets}
+	 Another model that has become popular in anomaly detection has been the generative adversarial network. It features a generator that tries to generate data that looks like the training data from a latent distribution (most often Gaussian or uniform) and a discriminator that tries to distinguish between data made by the generator and actual (real) data. 
+	 
+	 There are many different loss functions and this is still an active area of research. The Minimax loss has been used in the original paper about GANs but many other losses have been proposed. in the Minimax loss, the generator trains to minimize $log(1-D(G(z)))$ while the discriminator tries to maximize the probability of correctly distinguishing between fake (generated by Generator $G$) and real data, i.e. correctly assigning the right labels to data from the generator $G$ and real data. \cite{https://doi.org/10.48550/arxiv.1406.2661}
+	 
+	 \begin{equation}
+	 	\min_G \max_D V(D, G) = \E_{x\sim p_{data}(x)}[logD(x)] + \E_{z\sim p_z (z)}[log(1 - D(G(z)))] 
+	 \end{equation}
+	 
+	 This loss function can cause the GAN to get stuck in the early stages of training when the differentiation between fake and real samples done by the discriminator is very easy \cite{https://doi.org/10.48550/arxiv.1406.2661}. 
+	 
+	 Another popular loss function is the Wasserstein loss (the GAN being then called WGAN) where the discriminator does n
+ 	  
+ 	 \subsubsection{Autoencoder}
+ 	  
+ 	  Autoencoders are neural networks that are trained to reconstruct its inputs. They are a form of unsupervised learning that learn efficient encodings of the data that they are fed but can also be used in clustering tasks and as such can be used for anomaly detection. 
+ 	  
+ 	  Autoencoders consists of two parts: An Encoder and a Decoder. They can be viewed as functions $z = f(x)$ and $r = g(x)$ respectively. 
+ 	  
+ 	  	(detailed description of the problem, discussion of prior work, introduction of relevant machine learning tools)
+	 \section{Method}
+	 The dataset that we used was the CSE-CIC-IDS2017 (CICIDS2017) dataset. There actually is a new updated dataset, the CSE-CIC-IDS2018 (CICIDS2018) dataset, but this dataset was too large for our computing ressources. The CICIDS2018 dataset has a similar ratio of malicious attacks compared to the CICIDS2017 dataset but contains 16,233,002 instances while the CICIDS2017 "only" has a total of 2,830,743 instances. Each packet has a total number of 78 different features and a label which ranged from "BENIGN" to any of the different attacks which were a total of 14 different attack types. None of the features were categorical (except the label of course). 
+	 \newline
+	 
+	 \noindent
+	 In preprocessing, we removed any row that had some kind of faulty entry in the features, i.e. removing any rows that had infinity/-infinity in it or if there was a NaN value. After dropping these values, the dataset still had $99.89\%$ of its original size. We then made a 75-25 train-test split and saved this configuration such that it could be used for any of the models that we implemented. We also scaled the data using the MinMaxScaler that scales the input according to the following formula: $x_{scaled} = \frac{x-min(x)}{max(x)-min(x)}$ which is part of scikitlearns library \cite{sklearn_api}.
+	 \newline
+	 
+	 \noindent
+	 Our main contribution are a GAN and autoencoder model and compare their performance for anomaly detection on the CICIDS2017 dataset. We also implemented  a simple Feed Forward Network which served as a baseline model. We also implemented a simple Logistic Regression model to have some kind of comparison from the neural models to some non-neural model. In the following we will describe and explain each model.
+	 \newline
+	 
+	 \noindent
+	 The first model that we implemented is the baseline model which consists of a simple feed-forward network making binary predictions on the data using the binary cross entropy loss function. The baseline network had the problem of always predicting that the traffic is normal and still getting an accuracy of $80\%$. In order deal with that fact, we decided to adjust the class weights for the two classes. We had to adjust it in a really biased way towards the anomaly class, i.e. assigning a weight of $0.99$ to the anomaly class and $0.01$ to the normal class. 
+	 \newline
+	 
+	 
+	 \noindent
+	 Our main approach was develop a GAN that is able to differentiate between malicious and normal packets. Since GANs normally are generative models that are used to generate data (most often images) the GAN has to be modified in some way to be able to make it a discriminative model.  The idea is that the trained discriminator during training becomes really good at classifiying real data (i.e. the distribution of the real data) and fake data (i.e. data generated by the generator). This can be leveraged by simply training the GAN on a subset of the training data, i.e. by training the GAN with only normal (=not malicious) network packets such that the discriminator gets proficient at being able to classify normal and fake (from the generator) packets. This way, the discriminator may be able to then differentiate between normal and malicious traffic. 
+	 
+	 
+	 We did this by first changing the labels of the data to be binary. That way, attacks can be detected but the GAN is not able to predict the specific type of attack. This means that the network should be able to differentiate between normal traffic and malicious traffic (which consists out of 14 different types: DDoS, Infiltration, Heartbleed, PortScan, etc.).
+	 
+	 
+     There are multiple ways the discriminator is then able to identify anomalies. There are more complex ways, for example by incorporating an autoencoder architecture into the GAN architecture and then using the reconstruction scores to be able to classify data. The approach we used, however, is by using the following assumption: When training the GAN properly the lowest $x$ percentage lowest $x$ percentage that comprises of anomalies in the test set and threshold based on this score. There are also other ways to do this for example by solving an optimization problem or by incorporating an Autoencoder network in the GAN.
+     
+     When making binary predictions it is important to decide how to model the decision component, i.e. after creating the model that outputs probabilities $()\hat{p}, 1-\hat{p}$, how to decide at which probability threshold the decision should be made to one class or to the other. The decision on how to find the optimal decision threshold varies greatly depending on the task at hand: In medical applications a false negative could potentially not diagnose a disease which could lead to the patient not getting the right treatment.
+     
+     For anomaly detection it is not as obvious to decide what one should try to minimize. Is it better to minimize the detection of false positives or false negatives? The former leads to legit network traffic being rejected, the latter leading to attacks that are not being detected. 
+	(detailed description of your own approach, discussion of alternatives, introduction of the experimental methodology and quality metrics)
+	\section{Experiments}
+	(description of experiments, diagrams, comparison with results of prior work, interpretation of the experimental outcomes)
+	First and foremost, we noticed that multiple executions of the code resulted in vastly different results even when initializing the weights of the network with a seed. The dataset is really sensetive to randomness.  
+	We evaluated the model based on different metrics. We measured the (validation) accuracy as well measuring the true positive rate and the false positive rate, calculating the ROC curve and making a confusion matrix. Since there is a class imbalance of anomalous and normal packets, accuracy is not a good performance indicator. Simply having a classifier that always predicts normal packets would yield an accuracy score of 80\% which in itself is not a particularly bad score but fails to solve the task. We noticed that based on the generated random noise that was fed into the generator the performance of the GAN (specifically the performance of the discriminator when trying to classify anomalies) varied greatly. That's why we also have a look at tpr, fpr and f1-score to see how well the classifier is doing. 
+	\section{Summary and Outlook}
+	
+	One could look into Bayesian Hyper-Parameter Optimization with Gaussian Processes in order to make the GAN converge to a good optimum more likely. This is especially important because often GANs are hard to train and to make them converge. Training the GAN for this task is especially hard, because there are no good objective metrics for evaluating whether a GAN is performing well during training, so one has to visually inspect the generated examples by the generator \cite{https://doi.org/10.48550/arxiv.1606.03498}. This cannot be done in this specific task because the generated examples are not images but a 78 dimensional vector of different values (i.e. packet length, etc.). This makes it hard to ensure that the training is actually going well. 
+	\newpage
+	\bibliographystyle{plain}
+	\bibliography{references}
+\end{document}
+
