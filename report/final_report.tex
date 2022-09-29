@@ -216,7 +216,7 @@ def train_gan():
 
      When making binary predictions it is important to decide how to model the decision component, i.e. after creating the model that outputs probabilities $(\hat{p}, 1-\hat{p})$, how to decide at which probability threshold the decision should be made to one class or to the other. The decision on how to find the optimal decision threshold varies greatly depending on the task at hand: In medical applications a false negative could potentially not diagnose a disease which could lead to the patient not getting the right treatment.
      
-     For anomaly detection it is not as obvious to decide what one should try to minimize. Is it better to minimize the detection of false positives or false negatives? The former leads to legit network traffic being rejected, the latter leading to attacks that are not being detected. For the feed forward network and the autoencoder we maximized the true positive ratio and minimizing the false positive ratio. For the GAN we used the lowest $x$\% scores where $x$ is the number of anomalies in the training data set (~$20$\%).
+     For anomaly detection it is not as obvious to decide what one should try to minimize. Is it better to minimize the detection of false positives or false negatives? The former leads to legit network traffic being rejected, the latter leading to attacks that are not being detected. For the feed forward network and the autoencoder we maximized the true positive ratio and minimizing the false positive ratio. For the GAN we used the lowest $x\%$ scores where $x$ is the number of anomalies in the training data set ($\approx20$\%).
      
      
 	(detailed description of your own approach, discussion of alternatives, introduction of the experimental methodology and quality metrics)
@@ -226,7 +226,7 @@ def train_gan():
 	(description of experiments, diagrams, comparison with results of prior work, interpretation of the experimental outcomes)
 	First and foremost, we noticed that multiple executions of the code resulted in vastly different results even when initializing the weights of the network with a seed. The dataset is really sensitive to randomness.
 	
-	We evaluated the model based on different metrics. We measured the (validation) accuracy as well as measuring recall and precision and f1-score according to the following equations, where TP denotes true positive, TN denotes true negatives, FP denotes false positives and FN denotes false negatives: 
+	We evaluated the model based on different metrics. We measured the (validation) accuracy as well as measuring recall and precision and f1-score, which is the harmonic mean of precision and recall, according to the following equations, where TP denotes true positive, TN denotes true negatives, FP denotes false positives and FN denotes false negatives: 
 	
 	\begin{equation}
 		Precision = \frac{TP}{TP + FP}
@@ -241,11 +241,17 @@ def train_gan():
 \begin{equation}
 	F1 = \frac{TP}{TP + \frac{1}{2} (FP+FN)}
 \end{equation}
-	We also calculated the ROC curve and making a confusion matrix. Since there is a class imbalance of anomalous and normal packets, accuracy is not a good performance indicator. Simply having a classifier that always predicts normal packets would yield an accuracy score of 80\% which in itself is not a particularly bad score but fails to solve the task. That's why we also have a look at tpr, fpr and f1-score to see how well the classifier is doing.  We noticed that based on the generated random noise that was fed into the generator the performance of the GAN (specifically the performance of the discriminator when trying to classify anomalies) varied greatly.
+	We also calculated the ROC curve and making a confusion matrix. Since there is a class imbalance of anomalous and normal packets, accuracy is not a good performance indicator. Simply having a classifier that always predicts normal packets would yield an accuracy score of 80\% which in itself is not a particularly bad score but fails to solve the task. That's why we also have a look at tpr, fpr and f1-score to see how well the classifier is doing.  
+	
+	We also noticed that based on the generated random noise that was fed into the generator the performance of the GAN (specifically the performance of the discriminator when trying to classify anomalies) varied greatly. In addition to that, the GAN and the autoencoder failed to converge to an acceptable performance. Even though the losses of the autoencoder and the GAN are decreasing relatively steadily and seem like they converge as can be seen in Figure \ref{loss}, they both have a bad performance.
 	\newline
 	
 	\noindent
-	In table \ref{table1} the configuration of each neural network can be found. This was the best configuration found after experimenting with the hyperparameters. 
+	In table \ref{table1} the configuration of each neural network can be found. This was the best configuration found after experimenting with the hyperparameters. Using more epochs would likely increase the performance greatly but we did not have enough computational resources to increase the epochs. Also, we had to differ in using the learning rate because otherwise the autoencoder and the GAN would update its gradients such that it would jump over minima. 
+	
+	In table \ref{table2} the metrics of the 4 different models can be seen. The feed forward network has achieved the best metrics in every single category surpassing the other models greatly. It has a significantly higher recall than precision which can be desirable since a high recall shows that it almost recognized every bit of the malicious traffic. The lower precision shows that the network did classify some normal traffic as malicious traffic which basically suggests that the network is careful to not classify anomalous traffic as normal one and rather classifies normal traffic as malicious traffic. 
+	
+	This has due to the fact that we adjusted the class weights heavily in favor of the anomalies. We used class weights of 0.05 for normal packets and 0.95 for anomalous traffic since the class imbalance is skewed towards normal packets and we want to ensure that anomalous traffic is almost 100\% correctly captured by the model. This can also be seen in Figure \ref{confusion} where there are only 988 instances of malicious traffic wrongly classified as normal traffic. 
 	
 	\begin{table}[]
 		\begin{tabular}{llll}
@@ -254,51 +260,67 @@ def train_gan():
 			\textbf{Optimizer}     & Adam                & Adam                 & Adam                \\
 			\textbf{Batch size}    & 512                 & 512                  & 512                 \\
 			\textbf{Epochs}        & 50                  & 50                   & 10                  \\
-			\textbf{Loss function} & Binary Crossentropy & Binary Crossentropy  & Binary Crossentropy
+			\textbf{Loss function} & Binary Crossentropy & Binary Crossentropy  & Binary Crossentropy \\
+			\textbf{Trainable Parameters} & 46,657 &  35,602 & 43,919 \\
 		\end{tabular}
 	\caption{Parameters for models}
 	\label{table1}
 	\end{table}
 	
 	\begin{table}[]
-		\begin{tabular}{llll}
-			& \textbf{FFN} & \textbf{Autoencoder} & \textbf{GAN} \\
-			\textbf{Accuracy}  & 0.001        & 0.000001             & 0.00001      \\
-			\textbf{Recall}    & Adam         & Adam                 & Adam         \\
-			\textbf{Precision} & 512          & 512                  & 512          \\
-			\textbf{F1-score}  & 50           & 50                   & 10          
+		\begin{tabular}{lllll}
+			& \textbf{Logistic Regression} & \textbf{FFN} & \textbf{Autoencoder} & \textbf{GAN} \\
+			\textbf{Accuracy}  & 92.4                       & 0.001        & 0.000001             & 0.00001      \\
+			\textbf{Recall}    & 77.0                         & Adam         & Adam                 & Adam         \\
+			\textbf{Precision} & 83.6                         & 512          & 512                  & 512          \\
+			\textbf{F1-score}  & 80.2                         & 50           & 50                   & 10          
 		\end{tabular}
+	\caption{Metrics of models}
+	\label{table2}
 	\end{table}
 	
 	\begin{figure}[!tbp]
 		\centering
-		\subfloat[Feed forward network]{\includegraphics[width=0.3\textwidth]{figures/baseline/accuracy_baseline.png}\label{fig:f1}}
+		\subfloat[Feed forward network]{\includegraphics[width=0.4\textwidth]{best/baseline/accuracy_baseline.png}\label{fig:f1}}
 		\hfill
-		\subfloat[Autoencoder]{\includegraphics[width=0.3\textwidth]{figures/baseline/loss_baseline.png}\label{fig:f2}}
-		\hfill
-		\subfloat[GAN]{\includegraphics[width=0.3\textwidth]{figures/baseline/roc_baseline.png}\label{fig:f3}}
+		\subfloat[Autoencoder]{\includegraphics[width=0.4\textwidth]{best/autoencoder/accuracy_autoencoder.png}\label{fig:f2}}
 		\caption{Accuracy in training}
+		\label{accuracy}
 	\end{figure}
 	
 	\begin{figure}[!tbp]
 		\centering
-		\subfloat[Feed forward network]{\includegraphics[width=0.3\textwidth]{figures/baseline/accuracy_baseline.png}\label{fig:f4}}
+		\subfloat[Feed forward network]{\includegraphics[width=0.3\textwidth]{best/baseline/loss_baseline.png}\label{fig:f4}}
 		\hfill
-		\subfloat[Autoencoder]{\includegraphics[width=0.3\textwidth]{figures/baseline/loss_baseline.png}\label{fig:f5}}
+		\subfloat[Autoencoder]{\includegraphics[width=0.3\textwidth]{best/autoencoder/loss_autoencoder.png}\label{fig:f5}}
 		\hfill
-		\subfloat[GAN]{\includegraphics[width=0.3\textwidth]{figures/baseline/roc_baseline.png}\label{fig:f6}}
-		\caption{Confusion matrices}
+		\subfloat[GAN]{\includegraphics[width=0.3\textwidth]{best/gan/loss_gan.png}\label{fig:f6}}
+		\caption{Loss training}
+		\label{loss}
 	\end{figure}
 
 	\begin{figure}[!tbp]
 		\centering
-		\subfloat[Feed forward network]{\includegraphics[width=0.3\textwidth]{figures/baseline/accuracy_baseline.png}\label{fig:f7}}
+		\subfloat[Feed forward network]{\includegraphics[width=0.3\textwidth]{best/baseline/roc_baseline.png}\label{fig:f7}}
 		\hfill
-		\subfloat[Autoencoder]{\includegraphics[width=0.3\textwidth]{figures/baseline/loss_baseline.png}\label{fig:f8}}
+		\subfloat[Autoencoder]{\includegraphics[width=0.3\textwidth]{best/autoencoder/roc_autoencoder.png}\label{fig:f8}}
 		\hfill
-		\subfloat[GAN]{\includegraphics[width=0.3\textwidth]{figures/baseline/roc_baseline.png}\label{fig:f9}}
+		\subfloat[GAN]{\includegraphics[width=0.3\textwidth]{best/gan/roc_gan.png}\label{fig:f9}}
 		\caption{ROC curves}
+		\label{roc}
 	\end{figure}
+
+	\begin{figure}[!tbp]
+	\centering
+	\subfloat[Feed forward network]{\includegraphics[width=0.3\textwidth]{best/baseline/confusion_baseline.png}\label{fig:f7}}
+	\hfill
+	\subfloat[Autoencoder]{\includegraphics[width=0.3\textwidth]{best/autoencoder/confusion_autoencoder.png}\label{fig:f8}}
+	\hfill
+	\subfloat[GAN]{\includegraphics[width=0.3\textwidth]{best/gan/confusion_gan.png}\label{fig:f9}}
+	\caption{Confusion matrices}
+	\label{confusion}
+\end{figure}
+
 	\section{Summary and Outlook}
 	
 	One could look into Bayesian Hyper-Parameter Optimization with Gaussian Processes in order to make the GAN converge to a good optimum more likely. This is especially important because often GANs are hard to train and to make them converge. Training the GAN for this task is especially hard, because there are no good objective metrics for evaluating whether a GAN is performing well during training, so one has to visually inspect the generated examples by the generator \cite{https://doi.org/10.48550/arxiv.1606.03498}. This cannot be done in this specific task because the generated examples are not images but a 78 dimensional vector of different values (i.e. packet length, etc.). This makes it hard to ensure that the training is actually going well. 
