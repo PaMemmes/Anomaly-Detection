@@ -7,3 +7,5 @@ or from downloading only the relevant files from the compressed file from my goo
 Extract the .csv files to the folder data/MachineLearningCVE
 
 Then you can run preprocess.py to preprocess the files and run the models afterwards. 
+
+You can get the conda environment in src/environment.yml file.
