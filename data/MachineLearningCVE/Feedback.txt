@@ -1,0 +1,79 @@
+   ┌──────────────────────────────────────────────────────────────────────────────────────────────────┐               
+   │                                     Feedback to Exercise 05                                      │               
+   └──────────────────────────────────────────────────────────────────────────────────────────────────┘               
+Handed in as: Pascal_Memmesheimer__yunjoong_kim-2022-07-06-1521-ID-2b6cc732-e9ce-4509-9811-63fae90ca4a8.zip           
+                                                                                                                      
+                               Great, thanks for naming the file correctly.                                           
+                                                                                                                      
+                            This feedback is for:                                                                     
+                            • Pascal Memmesheimer (pascal-memmesheimer@gmx.de)                                        
+                            • YUNJOONG KIM (yun.kim@stud.uni-heidelberg.de)                                           
+                                                     
+                                                                
+                                           T 1 (40.0) │ ∑ (40.0)                                                      
+                                           ───────────┼─────────                                                      
+                                              40.0    │   40.0                                                        
+                                                     
+                                                                
+Task  1                                                                                [40.0 / 40.0]                  
+────────────────────────────────────────────────────────────────────────────────────────────────────                  
+                                                                                                                      
+Cross-Feedback +1                                                                                                     
+                                                                                                                      
+[Proposal 1]                                                                                                          
+                                                                                                                      
+Topic: Anomaly-based detection of malicious network packets                                                           
+                                                                                                                      
+Interesting: Yes! But the group should use methods from AML, not KNN or Decision Trees. I think                       
+it would be most interesting if the group first focused on comparing CNNs and VAEs (and maybe GANs                    
+if time allows), before creating ensemble methods, or dropping the ensemble idea altogether.                          
+                                                                                                                      
+Feasibility: Somewhat unclear. The group says getting datasets is problematic, but they mention                       
+two solid datasets. Computational tractability may be a significant factor, since the datasets                        
+are significantly larger than those used in the researched literature. The group is also quite                        
+unclear about the methods they want to use (i.e. how would you use GANs for classification?)                          
+                                                                                                                      
+Recommend: Yes. It seems the group could have done a better job researching and answering the                         
+questions from the sheet, but I would still recommend this proposal. (LK)                                             
+Carefully comparing classical methods to one or two neural approaches is probably enough for three weeks of work. (UK)
+                                                                                                                      
+────────────────────────────────────────────────────────────────────────────────────────────────────                  
+                                                                                                                      
+[Proposal 2]                                                                                                          
+                                                                                                                      
+Topic: Estimating the Efficacy of Covid-19 Countermeasures in Germany                                                 
+                                                                                                                      
+Interesting: Yes                                                                                                      
+                                                                                                                      
+Feasibility: Likely feasible. Again, the group is not very detailed on the methods they want to use.                  
+The papers they linked do not rely on ML at all, so simply replicating them is not possible. Data                     
+cleaning may also be necessary, since the dataset they mention has inconsistent frequency.                            
+                                                                                                                      
+Recommend: Yes. The group can contact me, should they struggle to come up with a detailed formalism                   
+for their methods. (LK)                                                                                               
+Interesting project, but need to clearly define the role of ML (as opposed to classifcal statistic). (UK)             
+                                                                                                                      
+────────────────────────────────────────────────────────────────────────────────────────────────────                  
+                                                                                                                      
+[Proposal 3]                                                                                                          
+                                                                                                                      
+Topic: Detecting Anemia with CNNs using ECG and PPG data                                                              
+                                                                                                                      
+Interesting: Yes, but may be too easy                                                                                 
+                                                                                                                      
+Feasibility: Somewhat feasible. The group does not link any specific datasets, only a generic                         
+collection of datasets. They also suggest training on real-world data and testing on simulated                        
+data, which is probably not a good idea.                                                                              
+                                                                                                                      
+Recommend: No. The overall idea and the scientific question are nice, but the other proposals                         
+are much better. (LK)                                                                                                 
+In principle an intersting idea, but not sufficiently worked out. (UK)                                                
+                                                                                                                      
+────────────────────────────────────────────────────────────────────────────────────────────────────                  
+                                                                                                                      
+                                                                                                                      
+
+                                                                                                                     
+════════════════════════════════════════════════════════════════════════════════════════════════════                  
+This feedback was created by Lars (Lars Kuehmichel).                                                                  
+Please ask questions about the feedback on Discord.                                                                   
