@@ -1,6 +1,5 @@
 \documentclass[]{article}
 
-
 \usepackage{makecell}
 % Set page size and margins
 % Replace `letterpaper' with`a4paper' for UK/EU standard size
@@ -13,7 +12,7 @@
 \usepackage{subfig}
 \usepackage{listings}
 \usepackage{xcolor}
-
+\usepackage{cite}
 \definecolor{codegreen}{rgb}{0,0.6,0}
 \definecolor{codegray}{rgb}{0.5,0.5,0.5}
 \definecolor{codepurple}{rgb}{0.58,0,0.82}
@@ -65,7 +64,7 @@
 		
 		\begin{minipage}[t]{0.8\textwidth}
 			\begin{itemize}
-				\item[\emph{Supervisor:}] Prof. Dr. Ullrich Köthe
+				\item[\emph{Supervisor:}] Prof. Dr. Ullrich Köthe, Lars Kuehmichel
 				\item[\emph{Semester:}] SS 2022
 				\item[\emph{Name:}] Pascal Memmesheimer
 				\item[\emph{Matr.-Nr.:}] 3371798
@@ -86,66 +85,66 @@
 
 	\section{Introduction}
 
-	Cyber Security is an integral part of any system that is used in a productive environment and connected to some kind of network like the internet. It is absolutely critical to ensure the safety of a system in such unsafe environments. There are many ways to make a system safer. From securing the system by always downloading the newest security patches to using strong passwords or even not connecting a system to the internet at all. The latter is however often not possible. 
-	\newline
-	
-	\noindent
-	Firewalls have become an integral part of any system in a network. By using a firewall one can use rules to allow or deny network packets. This, however, is not sufficient in order to secure a system because the function of a firewall is not to detect attacks but to just define rules for network communication. Thus, inspecting incoming data over the network may be crucial to secure a system. This is done by a so-called Intrusion Detection System (IDS). An IDS can help identify malicious network packets from normal packets and based on this categorization rules can be established how to deal with these malicious network packets. An IDS deals with the sole detection of such malicious network packets, an Intrusion Prevention System (IPS) deals with its detection and prevention of such packets. 
-	\newline
-	
-	\noindent
-	IDSs can be classified into two different systems: Host-based intrusion detection systems (HIDS) and network intrusion detection systems (NIDS). A HIDS monitors and analyzes a running system by looking at the state of the system, the stored information, the filesystem, log files, and more. A NIDS monitors the network by analyzing the network traffic, extracting the relevant features of the network traffic, classifying it as unsafe or safe traffic, and then raising an alarm if unsafe traffic has been classified. In the following, we will focus solely on NIDSs.
-	\newline
-	
-	\noindent
-	There are mainly two different ways to implement a NIDS. Firstly, one can use a Signature-based intrusion detection system (SIDS). SIDSs primarily create a signature of a network package and then use pattern-matching techniques to find a known attack. This is also called knowledge-based or misuse detection \cite{10.1007/978-3-030-04503-6_14}. In practice, a database of intrusion signatures (i.e. malicious activities/attacks) is built and signatures of incoming traffic are calculated and then are compared with the existing database. This kind of detection of malicious network packages works excellently but only for attacks in which signatures of attacks are known beforehand and that are already stored in the database \cite{10.1145/972374.972384}. 
-	
-	SIDS methods have been used in commercial and existing systems like in Snort \cite{roesch1999snort} and NetSTAT \cite{vigna1999netstat}. Attacks that are not in the database or zero-day attacks (attacks that are previously unknown), however, cannot be detected at all. 
-	
-	Because of this anomaly-based intrusion detection systems (AIDS) have become increasingly popular, especially with the rise of Deep Learning and anomaly detection being an important part in many other different domains including fraud detection, medical imaging and now also Cyber Security - there, especially for intrusion detection. 
-	\newline
-	
-	\noindent
-	Anomaly detection is a well-studied problem although fast and effective methods on (usually) high-dimensional data remain a challenge and better solutions are sought after.  This is due to the fact that there are a lot of different anomaly types and it is not trivial to categorize them correctly. 
-	
-	Some network packets may only be an outlier when incorporating this outlier in the sequence of the network packets before and after that packet. This is then called a collective anomaly. Other times a network packet may be a normal packet but because of the specific context, it should be considered an anomaly, i.e. classified as an attack. This is called a contextual anomaly \cite{10.1145/1541880.1541882}. 
-	\newline
-	
-	\noindent
-	Another problem that poses itself is that a system needs to monitor network traffic in real time. This means that classification of network packages has to be relatively fast such that there is no significant and noticeable delay in the packets arriving. This will especially be of relevance of models that only implicitly model the data distribution which in turn means that in order to classify malicious network packets, a costly optimization problem has to be solved.
-	\newline
-	
-	\noindent
-	Lastly, it is relatively hard to obtain a large and well maintained dataset for this task partly because of the expensive labelling and also because many companies and institutions are afraid of accidentally releasing sensitive data. Also, often not many attack variants are covered by the dataset which leads to underperforming IDSs in real applications since only a small subset of attack variants are covered by the training data. 
+Cyber Security is an integral part of any system that is used in a productive environment and connected to some kind of network like the internet. It is absolutely critical to ensure the safety of a system in such unsafe environments. There are many ways to make a system safer. From securing the system by always downloading the newest security patches to using strong passwords or even not connecting a system to the internet at all. The latter is however often not possible. 
+\newline
+
+\noindent
+Firewalls have become an integral part of any system in a network. By using a firewall one can use rules to allow or deny network packets. This, however, is not sufficient in order to secure a system because the function of a firewall is not to detect attacks but to just define rules for network communication. Thus, inspecting incoming data over the network may be crucial to secure a system. This is done by a so-called Intrusion Detection System (IDS). An IDS can help identify malicious network packets from normal packets and based on this categorization rules can be established on how to deal with these malicious network packets. An IDS deals with the sole detection of such malicious network packets, and an Intrusion Prevention System (IPS) deals with its detection and prevention of such packets. 
+\newline
+
+\noindent
+IDSs can be classified into two different systems: Host-based intrusion detection systems (HIDS) and network intrusion detection systems (NIDS). A HIDS monitors and analyzes a running system by looking at the state of the system, the stored information, the filesystem, log files, and more. A NIDS monitors the network by analyzing the network traffic, extracting the relevant features of the network traffic, classifying it as unsafe or safe traffic, and then raising an alarm if unsafe traffic has been classified. In the following, we will focus solely on NIDS.
+\newline
+
+\noindent
+There are mainly two different ways to implement a NIDS. Firstly, one can use a Signature-based intrusion detection system (SIDS). SIDS primarily creates a signature of a network package and then uses pattern-matching techniques to find a known attack. This is also called knowledge-based or misuse detection \cite{10.1007/978-3-030-04503-6_14}. In practice, a database of intrusion signatures (i.e. malicious activities/attacks) is built and signatures of incoming traffic are calculated and then compared with the existing database. This kind of detection of malicious network packages works excellently but only for attacks in which signatures of attacks are known beforehand and that are already stored in the database \cite{10.1145/972374.972384}. 
+
+SIDS methods have been used in commercial and existing systems like in Snort \cite{roesch1999snort} and NetSTAT \cite{vigna1999netstat}. Attacks that are not in the database or zero-day attacks (attacks that are previously unknown), however, cannot be detected at all. 
+
+Because of this anomaly-based intrusion detection systems (AIDS) have become increasingly popular, especially with the rise of Deep Learning and anomaly detection being an important part in many other different domains including fraud detection, medical imaging, and now also Cyber Security - there, especially for intrusion detection. 
+\newline
+
+\noindent
+Anomaly detection is a well-studied problem although fast and effective methods on (usually) high-dimensional data remain a challenge and better solutions are sought after.  This is due to the fact that there are a lot of different anomaly types and it is not trivial to categorize them correctly. 
+
+Some network packets may only be an outlier when incorporating this outlier in the sequence of the network packets before and after that packet. This is then called a collective anomaly. Other times a network packet may be a normal packet but because of the specific context, it should be considered an anomaly, i.e. classified as an attack. This is called a contextual anomaly \cite{10.1145/1541880.1541882}. 
+\newline
+
+\noindent
+Another problem that poses itself is that a system needs to monitor network traffic in real-time. This means that classification of network packages has to be relatively fast such that there is no significant and noticeable delay in the packets arriving. This will especially be of relevance to models that only implicitly model the data distribution which in turn means that to classify malicious network packets, a costly optimization problem has to be solved.
+\newline
+
+\noindent
+Lastly, it is relatively hard to obtain a large and well-maintained dataset for this task partly because of the expensive labeling and also because many companies and institutions are afraid of accidentally releasing sensitive data. Also, often not many attack variants are covered by the dataset which leads to underperforming IDSs in real applications since only a small subset of attack variants are covered by the training data. 
 	
 	
 	\section{Background and Theory}
 
 	
 	 The task is to implement a machine learning model that is able to differentiate between malicious packets vs normal packets, i.e. a binary classification task such that an IDS (or IPS) that uses this machine learning model can detect and reject malicious traffic. 
-	 
-	 This binary classification task is sometimes extended to multi-class classification. That way, an IDS is able to differentiate between different attacks. This can be useful because that way one could decide that less malicious attacks may not need to be rejected because that alarm may be a false positive and since it would not damage the system in a harmful way, it would not matter too much (for example a port scan is way less harmful than a DDoS).
 
-	\subsection{Prior Work}
-	 In the past, an abundance of different machine learning methods have been used for anomaly detection in various domains including for IDSs ranging from nearest neighbor methods \cite{5377998}, clustering approaches \cite{4244796}, decision trees \cite{6511281} to isolation forests \cite{DING201312} or support vector machines \cite{1234567}. 
-	 \newline
-	 
-	 \noindent
-	 Because of the rise of Deep Learning due to wider availability to computational resources and neural networks achieving excellent performance in many tasks, many approaches feature neural networks in some kind of way: Discriminative methods like feed forward networks, recurrent neural networks or LSTMs detect malicious packets (=anomalies) only if they are already labelled as such while methods based on autoencoders and/or variational autoencoders try to reconstruct normal data and then will identify data as anomalies when there is a high reconstruction error. This means, there generally is no need for labelled data in these generative models. 
-	 
-	 The threshold on how to differentiate between anomalies and normal data is often then adjusted to fit a specific use case, i.e. maximizing true positive rate while minimizing false positive rate or assuming reconstructions are normally distributed and labeling data as anomalies that are $x$ standard deviations away from the mean. This depends specifically on the business objective and the task at hand.
-	 \newline
-	 
-	 \noindent
-	 Other models that have been looked at are energy-based models and deep auto-encoding Gaussian mixture models that model the data distribution with autoencoders and then derive a statistical anomaly criterion based on energies or mixtures of Gaussians \cite{https://doi.org/10.48550/arxiv.1812.02288}. Bayesian networks and Hidden Markov Models have been used in the past too and achieve similar performance as the aforementioned methods \cite{inproceedings}.
-	 \newline
-	 
-	 \noindent
-	 The performance of these methods highly depend on the dataset used and the specific (hyper-parameter) being used, the methods have little systematic advantage over another when compared across datasets and (hyper-) parameters \cite{xxxx}, even classical machine learning models like the already mentioned k-nearest neighbor method and support vector machines are competitive. 
-	 \newline
-	 
-	 \noindent
-	 In the following we will look specifically at generative adversarial models and autoencoder, because we focused on the implementation of these models. 
+This binary classification task is sometimes extended to multi-class classification. That way, an IDS can differentiate between different attacks. This can be useful because that way one could decide that less malicious attacks may not need to be rejected because that alarm may be a false positive and since it would not damage the system in a harmful way, it would not matter too much (for example a port scan is way less harmful than a DDoS).
+
+\subsection{Prior Work}
+In the past, an abundance of different machine learning methods have been used for anomaly detection in various domains including for IDSs ranging from nearest neighbor methods \cite{5377998}, clustering approaches \cite{4244796}, decision trees \cite{6511281} to isolation forests \cite{DING201312} or support vector machines \cite{1234567}. 
+\newline
+
+\noindent
+Because of the rise of Deep Learning due to wider availability to computational resources and neural networks achieving excellent performance in many tasks, many approaches feature neural networks in some kind of way: Discriminative methods like feed-forward networks, recurrent neural networks or LSTMs detect malicious packets (=anomalies) only if they are already labeled as such while methods based on autoencoders and/or variational autoencoders try to reconstruct normal data and then will identify data as anomalies when there is a high reconstruction error. This means, there generally is no need for labeled data in these generative models. 
+
+The threshold on how to differentiate between anomalies and normal data is often then adjusted to fit a specific use case, i.e. maximizing true positive rate while minimizing false positive rate or assuming reconstructions are normally distributed and labeling data as anomalies that are $x$ standard deviations away from the mean. This depends specifically on the business objective and the task at hand.
+\newline
+
+\noindent
+Other models that have been looked at are energy-based models and deep auto-encoding Gaussian mixture models that model the data distribution with autoencoders and then derive a statistical anomaly criterion based on energies or mixtures of Gaussians \cite{https://doi.org/10.48550/arxiv.1812.02288}. Bayesian networks and Hidden Markov Models have been used in the past too and achieve similar performance as the aforementioned methods \cite{inproceedings}.
+\newline
+
+\noindent
+The performance of these methods highly depend on the dataset used and the specific (hyper-parameter) being used, the methods have little systematic advantage over another when compared across datasets and (hyper-) parameters \cite{xxxx}, even classical machine learning models like the already mentioned k-nearest neighbor method and support vector machines are competitive. 
+\newline
+
+\noindent
+In the following, we will look specifically at generative adversarial models and autoencoder, because we focused on the implementation of these models. 
 	
 	 
 	 \subsection{Relevant tools}
@@ -283,11 +282,11 @@ def train_gan():
 	\begin{table}[]
 		\begin{tabular}{llll}
 			& \textbf{FFN}        & \textbf{Autoencoder} & \textbf{GAN}        \\
-			\textbf{Learning rate} & 0.001               & 0.000001             & 0.00001             \\
+			\textbf{Learning rate} & 0.001               & 0.00001             & 0.00001             \\
 			\textbf{Optimizer}     & Adam                & Adam                 & Adam                \\
 			\textbf{Batch size}    & 512                 & 512                  & 512                 \\
-			\textbf{Epochs}        & 50                  & 50                   & 10                  \\
-			\textbf{Loss function} & Binary Crossentropy & Binary Crossentropy  & Binary Crossentropy \\
+			\textbf{Epochs}        & 50                  & 100                   & 100                  \\
+			\textbf{Loss function} & Binary Crossentropy & MSE  & Binary Crossentropy \\
 			\textbf{Trainable Parameters} & 46,657 &  35,602 & 43,919 \\
 		\end{tabular}
 		\caption{Parameters for models}
@@ -331,10 +330,10 @@ def train_gan():
 			\begin{table}[]
 		\begin{tabular}{lllll}
 			& \textbf{Logistic Regression} & \textbf{FFN} & \textbf{Autoencoder} & \textbf{GAN} \\
-			\textbf{Accuracy}  & 92.4                       & 0.001        & 50.5             & 79.3      \\
-			\textbf{Recall}    & 77.0                         & Adam         & 99.8                 & 47.7        \\
-			\textbf{Precision} & 83.6                         & 512          & 28.5                  & 47.7         \\
-			\textbf{F1-score}  & 80.2                         & 50           & 44.3                   & 47.7        
+			\textbf{Accuracy}  & 92.4                       & 97.9        & 50.5             & 79.3      \\
+			\textbf{Recall}    & 77.0                         & 99.2         & 99.8                 & 47.7        \\
+			\textbf{Precision} & 83.6                         & 91.2          & 28.5                  & 47.7         \\
+			\textbf{F1-score}  & 80.2                         & 95.1           & 44.3                   & 47.7        
 		\end{tabular}
 		\caption{Metrics of models}
 		\label{table1}
@@ -363,11 +362,11 @@ def train_gan():
 
 	\begin{figure}[!tbp]
 	\centering
-	\subfloat[Feed forward network]{\includegraphics[width=0.3\textwidth]{best/baseline/confusion_baseline.png}\label{fig:f7}}
+	\subfloat[Feed forward network]{\includegraphics[width=0.333\textwidth]{best/baseline/confusion_baseline.png}\label{fig:f7}}
 	\hfill
-	\subfloat[Autoencoder]{\includegraphics[width=0.3\textwidth]{best/autoencoder/confusion_autoencoder.png}\label{fig:f8}}
+	\subfloat[Autoencoder]{\includegraphics[width=0.333\textwidth]{best/autoencoder/confusion_autoencoder.png}\label{fig:f8}}
 	\hfill
-	\subfloat[GAN]{\includegraphics[width=0.3\textwidth]{best/gan/confusion_gan.png}\label{fig:f9}}
+	\subfloat[GAN]{\includegraphics[width=0.333\textwidth]{best/gan/confusion_gan.png}\label{fig:f9}}
 	\caption{Confusion matrices}
 	\label{confusion}
 \end{figure}
@@ -385,7 +384,8 @@ def train_gan():
 	\noindent
 	Furthermore, there are many extensions for GANs that could be viable for usage in an IDS. As we already have talked about using an Adversarial Autoencoder or using Adversarial Variational Bayes could be extensions and may be more powerful than using a simple GAN. Also, we thought about implementing a convolutional GAN but did not do that since the simple GAN was not working properly to begin with. Also we are not sure if the advantages a CNN has on image data translates to the data in this cybersecurity context. 
 	\newpage
-	\bibliographystyle{plain}
+
 	\bibliography{references}
+	\bibliographystyle{plain}
 \end{document}
 
