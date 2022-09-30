@@ -24,6 +24,8 @@ def plot_accuracy(history, savefile, name):
     plt.plot(history.history['accuracy'])
     plt.plot(history.history['val_accuracy'])
     plt.legend(['accuracy', 'val_accuracy'])
+    plt.xlabel('Epoch')
+    plt.ylabel('Accuracy in percent')
     plt.title(name)
     plt.savefig(savefile)
     
@@ -31,6 +33,8 @@ def plot_loss(history, savefile, name):
     plt.plot(history.history['loss'])
     plt.plot(history.history['val_loss'])
     plt.legend(['loss', 'val_loss'])
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
     plt.title(name)
     plt.savefig(savefile)
     
